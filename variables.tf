@@ -58,7 +58,68 @@ variable "repositories" {
     license_template   = optional(string, "apache-2.0")
     gitignore_template = optional(string, null)
   }))
-  default = {}
+  default = {
+    "commons-web" = {
+      description      = "Foundational Spring Boot auto-configuration library in Kotlin for microservices"
+      language         = "kotlin"
+      build_tool       = "gradle"
+      default_branch   = "master"
+      jdk_version      = "21"
+      jdk_distribution = "corretto"
+      visibility       = "public"
+      topics           = ["kotlin", "gradle", "spring-boot", "library", "maven-central"]
+    },
+    "commons-telegram" = {
+      description      = "Spring Boot starter and adapter library in Kotlin for Telegram Bot integration"
+      language         = "kotlin"
+      build_tool       = "gradle"
+      default_branch   = "master"
+      jdk_version      = "21"
+      jdk_distribution = "corretto"
+      visibility       = "public"
+      topics           = ["kotlin", "gradle", "spring-boot", "telegram-bot", "library", "maven-central"]
+    },
+    "cumulus.dotfiles" = {
+      description      = "Sway/Wayland desktop configuration and system manager built in Scala 3 with GraalVM Native Image"
+      language         = "scala"
+      build_tool       = "sbt"
+      default_branch   = "master"
+      jdk_version      = "21"
+      jdk_distribution = "graalvm-community"
+      visibility       = "public"
+      topics           = ["scala", "sbt", "graalvm", "native-image", "dotfiles", "maven-central"]
+    },
+    "cumulus.nvim" = {
+      description      = "Polyglot JVM intelligence engine for Neovim built in Scala 3 with GraalVM Native Image"
+      language         = "scala"
+      build_tool       = "sbt"
+      default_branch   = "main"
+      jdk_version      = "21"
+      jdk_distribution = "graalvm-community"
+      visibility       = "public"
+      topics           = ["scala", "sbt", "neovim", "graalvm", "native-image", "library", "maven-central"]
+    },
+    "ahun-duty-service" = {
+      description      = "Duty management microservice for Casa Ahun in Kotlin / Spring Boot"
+      language         = "kotlin"
+      build_tool       = "gradle"
+      default_branch   = "master"
+      jdk_version      = "21"
+      jdk_distribution = "corretto"
+      visibility       = "public"
+      topics           = ["kotlin", "gradle", "spring-boot", "microservice", "maven-central"]
+    },
+    "ahun-members-service" = {
+      description      = "Birthday reminder and members management service for Casa Ahun in Java / Spring Boot"
+      language         = "java"
+      build_tool       = "gradle"
+      default_branch   = "master"
+      jdk_version      = "21"
+      jdk_distribution = "corretto"
+      visibility       = "public"
+      topics           = ["java", "gradle", "spring-boot", "microservice", "maven-central"]
+    }
+  }
 
   validation {
     condition = alltrue([
