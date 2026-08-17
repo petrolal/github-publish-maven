@@ -31,5 +31,12 @@ jobs:
           distribution: '${jdk_distribution}'
           java-version: '${jdk_version}'
 
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
+
       - name: Run SBT Tests
-        run: sbt test
+        run: |
+          if [ -f "engine/build.sbt" ] && [ ! -f "build.sbt" ]; then
+            cd engine
+          fi
+          sbt test
