@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches:
+      - main
+      - master
+
+concurrency:
+  group: ci-$${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test & Verify (${language})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${jdk_version}
+        uses: actions/setup-java@v4
+        with:
+          distribution: '${jdk_distribution}'
+          java-version: '${jdk_version}'
+
+      - name: Run SBT Tests
+        run: sbt test

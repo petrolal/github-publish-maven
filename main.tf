@@ -101,7 +101,7 @@ resource "github_actions_secret" "secrets" {
   depends_on = [github_repository.repos]
 }
 
-# 3. Add GitHub Actions CI/CD Workflow File to each repository
+# 3. Add GitHub Actions CI/CD Deployment Workflow File to each repository (Tag-driven release)
 resource "github_repository_file" "workflow" {
   for_each = var.repositories
 
@@ -118,6 +118,51 @@ resource "github_repository_file" "workflow" {
   commit_author       = "Terraform"
   commit_email        = "terraform@example.com"
   overwrite_on_create = true
+
+  depends_on = [github_repository.repos]
+}
+
+# 4. Add GitHub Actions Standard CI Workflow File to each repository (PR and branch verification)
+resource "github_repository_file" "ci_workflow" {
+  for_each = var.repositories
+
+  repository = github_repository.repos[each.key].name
+  branch     = each.value.default_branch
+  file       = ".github/workflows/ci.yml"
+  content = templatefile("${path.module}/templates/workflows/ci_${each.value.build_tool}.yml.tftpl", {
+    language         = each.value.language
+    build_tool       = each.value.build_tool
+    jdk_version      = each.value.jdk_version
+    jdk_distribution = each.value.jdk_distribution
+  })
+  commit_message      = "ci: add standard CI verification workflow [skip ci]"
+  commit_author       = "Terraform"
+  commit_email        = "terraform@example.com"
+  overwrite_on_create = true
+
+  depends_on = [github_repository.repos]
+}
+
+# 5. Tag Protection Ruleset to prevent deletion or overwriting of release tags (v*)
+resource "github_repository_ruleset" "protect_tags" {
+  for_each = var.repositories
+
+  name        = "protect-release-tags"
+  repository  = github_repository.repos[each.key].name
+  target      = "tag"
+  enforcement = "active"
+
+  conditions {
+    ref_name {
+      include = ["refs/tags/v*"]
+      exclude = []
+    }
+  }
+
+  rules {
+    deletion = true
+    update   = true
+  }
 
   depends_on = [github_repository.repos]
 }
