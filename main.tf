@@ -1,5 +1,6 @@
 # 0. Automatically extract GPG Private Key from local system (or use var.signing_key if provided)
 data "external" "local_gpg_key" {
+  count   = var.signing_key == null ? 1 : 0
   program = ["bash", "${path.module}/scripts/get_gpg_key.sh"]
   query = {
     key_id     = var.gpg_key_id != null ? var.gpg_key_id : ""
@@ -9,8 +10,8 @@ data "external" "local_gpg_key" {
 }
 
 locals {
-  resolved_signing_key = try(data.external.local_gpg_key.result["key"], var.signing_key)
-  resolved_key_id      = try(data.external.local_gpg_key.result["key_id"], var.gpg_key_id)
+  resolved_signing_key = var.signing_key != null ? var.signing_key : try(data.external.local_gpg_key[0].result["key"], "")
+  resolved_key_id      = var.gpg_key_id != null ? var.gpg_key_id : try(data.external.local_gpg_key[0].result["key_id"], "")
 }
 
 # 1. Create GitHub Repositories
@@ -93,9 +94,9 @@ resource "github_actions_secret" "secrets" {
     for entry in local.repo_secrets : "${entry.repo_name}/${entry.secret_name}" => entry
   }
 
-  repository      = github_repository.repos[each.value.repo_name].name
-  secret_name     = each.value.secret_name
-  plaintext_value = each.value.secret_value
+  repository  = github_repository.repos[each.value.repo_name].name
+  secret_name = each.value.secret_name
+  value       = each.value.secret_value
 
   depends_on = [github_repository.repos]
 }
@@ -105,7 +106,7 @@ resource "github_repository_file" "workflow" {
   for_each = var.repositories
 
   repository = github_repository.repos[each.key].name
-  branch     = "main"
+  branch     = each.value.default_branch
   file       = ".github/workflows/deploy.yml"
   content = templatefile("${path.module}/templates/workflows/${each.value.build_tool}.yml.tftpl", {
     language         = each.value.language

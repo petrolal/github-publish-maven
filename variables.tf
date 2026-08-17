@@ -49,6 +49,7 @@ variable "repositories" {
     visibility         = optional(string, "public")
     language           = string # "kotlin", "java", "scala"
     build_tool         = string # "gradle", "maven", "sbt"
+    default_branch     = optional(string, "main")
     jdk_version        = optional(string, "21")
     jdk_distribution   = optional(string, "corretto") # e.g. "corretto", "graalvm-community", "temurin"
     topics             = optional(list(string), ["maven-central", "library"])

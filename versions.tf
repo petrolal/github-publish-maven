@@ -1,5 +1,15 @@
 terraform {
   required_version = ">= 1.5.0"
+
+  cloud {
+    # Replace with your HCP Terraform (Terraform Cloud) organization name
+    organization = "petrolal-org"
+
+    workspaces {
+      name = "github-publish-maven"
+    }
+  }
+
   required_providers {
     github = {
       source  = "integrations/github"
