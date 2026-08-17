@@ -1,0 +1,51 @@
+github_token = "ghp_your_github_personal_access_token_here"
+github_owner = "petrolal" # optional: your GitHub username or organization
+
+maven_central_username = "your_sonatype_portal_token_username"
+maven_central_password = "your_sonatype_portal_token_password"
+
+# --- GPG Key Options ---
+# Option 1 (Automatic): Leave signing_key commented out or null.
+# Terraform will automatically extract the GPG private key from your local GPG keyring!
+# signing_key = null
+
+# (Optional) Specify key ID if you have multiple keys on your system:
+# gpg_key_id = "C7A30CAF507B01B9F4BED6C3D79966B7698B8A7D"
+
+# Passphrase if your local key is password protected:
+signing_password = "your_gpg_key_passphrase"
+
+repositories = {
+  # Kotlin Library using Gradle
+  "commons-kotlin-util" = {
+    description      = "Kotlin utilities library published to Maven Central"
+    language         = "kotlin"
+    build_tool       = "gradle"
+    jdk_version      = "21"
+    jdk_distribution = "corretto"
+    visibility       = "public"
+    topics           = ["kotlin", "gradle", "library", "maven-central"]
+  },
+
+  # Scala Library using SBT (following cumulus.dotfiles flow)
+  "cumulus-core" = {
+    description      = "Scala core library published to Maven Central"
+    language         = "scala"
+    build_tool       = "sbt"
+    jdk_version      = "21"
+    jdk_distribution = "graalvm-community"
+    visibility       = "public"
+    topics           = ["scala", "sbt", "library", "maven-central"]
+  },
+
+  # Java Library using Maven
+  "commons-java-core" = {
+    description      = "Java core utilities published to Maven Central"
+    language         = "java"
+    build_tool       = "maven"
+    jdk_version      = "21"
+    jdk_distribution = "temurin"
+    visibility       = "public"
+    topics           = ["java", "maven", "library", "maven-central"]
+  }
+}

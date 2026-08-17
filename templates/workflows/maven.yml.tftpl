@@ -1,0 +1,108 @@
+name: Maven Build, Test & Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 1.0.0 - leave empty to use tag/default)'
+        required: false
+        type: string
+
+jobs:
+  build-and-test:
+    name: Build & Test (${language})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK ${jdk_version}
+        uses: actions/setup-java@v4
+        with:
+          distribution: '${jdk_distribution}'
+          java-version: '${jdk_version}'
+          cache: 'maven'
+
+      - name: Build and Test
+        run: mvn clean verify
+
+  publish-and-release:
+    name: Publish to Maven Central & Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK ${jdk_version}
+        uses: actions/setup-java@v4
+        with:
+          distribution: '${jdk_distribution}'
+          java-version: '${jdk_version}'
+          cache: 'maven'
+          server-id: 'central'
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
+      - name: Extract version from git tag
+        id: get_version
+        run: |
+          if [ -n "$${{ github.event.inputs.version }}" ]; then
+            VERSION="$${{ github.event.inputs.version }}"
+            TAG_NAME="v$${VERSION#v}"
+          elif [[ "$${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG_NAME="$${GITHUB_REF_NAME}"
+            VERSION="$${TAG_NAME#v}"
+          else
+            VERSION="0.1.0"
+            TAG_NAME="v$${VERSION}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION"
+
+      - name: Import GPG Key
+        env:
+          RAW_KEY: $${{ secrets.SIGNING_KEY || secrets.PGP_SECRET || secrets.GPG_SIGNING_KEY }}
+          PASSPHRASE: $${{ secrets.SIGNING_PASSWORD || secrets.PGP_PASSPHRASE || secrets.GPG_PASSWORD }}
+        run: |
+          if [ -z "$RAW_KEY" ]; then
+            echo "::error::Signing key is missing!"
+            exit 1
+          fi
+
+          if echo "$RAW_KEY" | grep -q "BEGIN PGP PRIVATE KEY BLOCK"; then
+            echo "$RAW_KEY" | gpg --batch --import
+          else
+            echo "$RAW_KEY" | base64 -d | gpg --batch --import
+          fi
+
+      - name: Publish to Maven Central
+        env:
+          MAVEN_USERNAME: $${{ secrets.MAVEN_CENTRAL_USERNAME || secrets.SONATYPE_USERNAME }}
+          MAVEN_PASSWORD: $${{ secrets.MAVEN_CENTRAL_PASSWORD || secrets.SONATYPE_PASSWORD }}
+          GPG_PASSPHRASE: $${{ secrets.SIGNING_PASSWORD || secrets.PGP_PASSPHRASE }}
+        run: |
+          mvn clean deploy -DskipTests -Dgpg.passphrase="$${GPG_PASSPHRASE}" -Drevision="$${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: $${{ steps.get_version.outputs.TAG_NAME }}
+          name: Release $${{ steps.get_version.outputs.TAG_NAME }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: $${{ secrets.GITHUB_TOKEN }}

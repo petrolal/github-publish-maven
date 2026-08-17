@@ -1,0 +1,80 @@
+# ==============================================================================
+# Terraform / OpenTofu
+# ==============================================================================
+# Local .terraform directories and plugin cache
+**/.terraform/*
+*.tfplan
+*.tfplan.*
+
+# State files & backups
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude variable definition files (contain secrets/tokens)
+*.tfvars
+*.tfvars.json
+
+# Whitelist example variable definition files
+!*.tfvars.example
+!*.tfvars.json.example
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# ==============================================================================
+# Secrets, Keys & Environment Variables
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.asc
+*.gpg
+*.pub
+secring.*
+*.pfx
+*.p12
+
+# ==============================================================================
+# Operating System Files
+# ==============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# ==============================================================================
+# IDEs and Editors
+# ==============================================================================
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ==============================================================================
+# Logs & Agent Test Output
+# ==============================================================================
+*.log
+_bmad-output/
